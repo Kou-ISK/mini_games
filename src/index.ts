@@ -14,6 +14,7 @@ class MyScene extends Phaser.Scene {
     this.add.image(400, 300, 'street');
     this.add.image(400, 300, 'robot');
     this.add.text(400, 300, 'Hello World');
+    this.add.rectangle(200, 200, 200, 200, 200, 10);
   }
 }
 
