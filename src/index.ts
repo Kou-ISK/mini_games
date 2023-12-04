@@ -2,6 +2,9 @@ import * as Phaser from 'phaser';
 var platforms;
 var cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
 var player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+var score: number = 0;
+var scoreText: Phaser.GameObjects.Text;
+var stars;
 
 class MyScene extends Phaser.Scene {
   constructor() {
@@ -11,6 +14,7 @@ class MyScene extends Phaser.Scene {
   preload() {
     this.load.image('street', 'assets/street.png');
     this.load.image('ground', 'assets/platform.png');
+    this.load.image('star', 'assets/star.png');
     this.load.spritesheet('player', 'assets/dude.png', {
       frameWidth: 32,
       frameHeight: 48,
@@ -19,7 +23,7 @@ class MyScene extends Phaser.Scene {
 
   create() {
     this.add.image(400, 300, 'street');
-    this.add.text(400, 300, 'Hello World');
+    scoreText = this.add.text(0, 30, `Score: ${score}`);
     platforms = this.physics.add.staticGroup();
     platforms.create(400, 568, 'ground').setScale(2).refreshBody();
     platforms.create(600, 400, 'ground').setScale(0.5).refreshBody();
@@ -29,7 +33,6 @@ class MyScene extends Phaser.Scene {
     cursors = this.input.keyboard?.createCursorKeys();
     // プレイヤーを初期配置する。
     player = this.physics.add.sprite(100, 450, 'player');
-    //player.setBounce(0.2); // ぶつかったらちょっと跳ねる
     player.setCollideWorldBounds(true); // 画面枠にぶつかっちゃう
     this.anims.create({
       key: 'left',
@@ -50,7 +53,19 @@ class MyScene extends Phaser.Scene {
       frameRate: 10,
       repeat: -1,
     });
+    stars = this.physics.add.group({
+      key: 'star',
+      repeat: 11,
+      setXY: { x: 12, y: 0, stepX: 70 },
+    });
+    stars.children.iterate((child: Phaser.GameObjects.GameObject | null) => {
+      if (child instanceof Phaser.Physics.Arcade.Image) {
+        child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+      }
+    });
+    this.physics.add.collider(stars, platforms);
     this.physics.add.collider(player, platforms);
+    this.physics.add.overlap(player, stars, collectStar, null, this);
   }
   update() {
     if (cursors) {
@@ -72,6 +87,11 @@ class MyScene extends Phaser.Scene {
   }
 }
 
+const collectStar = (player: any, star: any) => {
+  score += 1;
+  star.disableBody(true, true);
+  scoreText.setText(`Score: ${score}`);
+};
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   width: 800,
