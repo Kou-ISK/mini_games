@@ -4,7 +4,9 @@ var cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
 var player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
 var score: number = 0;
 var scoreText: Phaser.GameObjects.Text;
+var clearText: Phaser.GameObjects.Text;
 var stars;
+const CLEAR_SCORE = 12;
 
 class MyScene extends Phaser.Scene {
   constructor() {
@@ -24,6 +26,8 @@ class MyScene extends Phaser.Scene {
   create() {
     this.add.image(400, 300, 'street');
     scoreText = this.add.text(0, 30, `Score: ${score}`);
+    // TODO addListenerの挙動を調べる
+    clearText = this.add.text(350, 300, '');
     platforms = this.physics.add.staticGroup();
     platforms.create(400, 568, 'ground').setScale(2).refreshBody();
     platforms.create(600, 400, 'ground').setScale(0.5).refreshBody();
@@ -58,14 +62,14 @@ class MyScene extends Phaser.Scene {
       repeat: 11,
       setXY: { x: 12, y: 0, stepX: 70 },
     });
-    stars.children.iterate((child: Phaser.GameObjects.GameObject | null) => {
-      if (child instanceof Phaser.Physics.Arcade.Image) {
-        child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
-      }
+
+    stars.children.iterate((child: any) => {
+      return child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
     });
+
     this.physics.add.collider(stars, platforms);
     this.physics.add.collider(player, platforms);
-    this.physics.add.overlap(player, stars, collectStar, null, this);
+    this.physics.add.overlap(player, stars, collectStar, undefined, this);
   }
   update() {
     if (cursors) {
@@ -91,7 +95,11 @@ const collectStar = (player: any, star: any) => {
   score += 1;
   star.disableBody(true, true);
   scoreText.setText(`Score: ${score}`);
+  if (score >= CLEAR_SCORE) {
+    clearText.setText('GAME CLEAR');
+  }
 };
+
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   width: 800,
